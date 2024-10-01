@@ -30,10 +30,9 @@ public class Member extends BaseTimeEntity {
   private String refreshToken;
 
   @Builder
-  public Member(String nickname, String socialId, String refreshToken) {
+  public Member(String nickname, String socialId) {
     this.nickname = nickname;
     this.socialId = socialId;
-    this.refreshToken = refreshToken;
   }
 
   public void updateRefreshToken(String refreshToken) {

@@ -1,6 +1,6 @@
 package com.ssafy.side.api.auth.service.Impl;
 
-import static com.ssafy.side.common.exception.ErrorMessage.MISSING_AUTHORIZATION_CODE;
+import static com.ssafy.side.common.exception.ErrorMessage.ERR_MISSING_AUTHORIZATION_CODE;
 
 import com.ssafy.side.api.auth.dto.SocialInfoDto;
 import com.ssafy.side.api.auth.dto.SocialLoginRequestDto;
@@ -11,8 +11,10 @@ import com.ssafy.side.api.member.domain.Member;
 import com.ssafy.side.api.member.domain.MemberRepository;
 import com.ssafy.side.common.config.jwt.JwtTokenProvider;
 import com.ssafy.side.common.exception.BadRequestException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +25,10 @@ public class AuthServiceImplWithKakao implements AuthService {
     private final MemberRepository memberRepository;
 
     @Override
+    @Transactional
     public SocialLoginResponseDto socialLogin(SocialLoginRequestDto requestDto) {
         if (requestDto.code() == null) {
-            throw new BadRequestException(MISSING_AUTHORIZATION_CODE.getMessage());
+            throw new BadRequestException(ERR_MISSING_AUTHORIZATION_CODE);
         }
 
         try {
@@ -33,23 +36,22 @@ public class AuthServiceImplWithKakao implements AuthService {
 
             String refreshToken = jwtTokenProvider.generateRefreshToken();
 
-            Boolean isExistUser = memberRepository.existsBySocialId(String.valueOf(socialData.id()));
+            Optional<Member> findMember = memberRepository.findMemberBySocialId(String.valueOf(socialData.id()));
 
             // 신규 유저 저장
-            if (!isExistUser.booleanValue()) {
+            if (findMember.isEmpty()) {
                 Member member = Member.builder()
                         .nickname(socialData.nickname())
                         .socialId(String.valueOf(socialData.id()))
-                        .refreshToken(refreshToken)
                         .build();
 
                 memberRepository.save(member);
             }
-            else memberRepository.findMemberBySocialIdOrThrow(String.valueOf(socialData.id())).updateRefreshToken(refreshToken);
 
             // socialId를 통해서 등록된 유저 찾기
             Member signedMember = memberRepository.findMemberBySocialIdOrThrow(String.valueOf(socialData.id()));
-
+            System.out.println(signedMember.getSocialId());
+            signedMember.updateRefreshToken(refreshToken);
             String accessToken = jwtTokenProvider.generateAccessToken(signedMember.getId());
 
             return new SocialLoginResponseDto(accessToken, signedMember.getRefreshToken());

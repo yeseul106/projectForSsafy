@@ -27,7 +27,7 @@ public class SwaggerConfig {
   public GroupedOpenApi Version1OpenApi() {
     return GroupedOpenApi.builder()
         .group("SkillTesting API v1")
-        .pathsToMatch("/api/v1/**")
+        .pathsToMatch("/**")
         .build();
   }
 }

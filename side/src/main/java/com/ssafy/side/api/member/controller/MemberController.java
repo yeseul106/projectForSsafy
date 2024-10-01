@@ -2,7 +2,7 @@ package com.ssafy.side.api.member.controller;
 
 import com.ssafy.side.api.member.dto.GetMemberInfoResponseDto;
 import com.ssafy.side.api.member.service.MemberService;
-import com.ssafy.side.common.uitl.MemberUtil;
+import com.ssafy.side.common.util.MemberUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.security.Principal;

@@ -1,5 +1,9 @@
 package com.ssafy.side.common.config.jwt;
 
+import static com.ssafy.side.common.exception.ErrorMessage.ERR_NO_COOKIE;
+import static com.ssafy.side.common.exception.ErrorMessage.ERR_NO_REFRESH_TOKEN_IN_COOKIE;
+import static com.ssafy.side.common.exception.ErrorMessage.ERR_UNAUTORIZED;
+
 import com.ssafy.side.common.exception.ErrorMessage;
 import com.ssafy.side.common.exception.UnAuthorizedException;
 import io.jsonwebtoken.Claims;
@@ -32,53 +36,56 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
         try {
             String accessToken = jwtTokenProvider.resolveToken(request);
+            /**
+             *  토큰 재발급 로직
+             */
             if (ISSUE_TOKEN_API_URL.equals(request.getRequestURI())) {
                 Cookie[] cookies = request.getCookies();
                 if (cookies == null) {
-                  jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
-                          ErrorMessage.NO_COOKIE.getMessage());
-                  return;
+                    jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
+                            ERR_NO_COOKIE.toString());
+                    return;
                 }
                 Optional<String> refreshToken = Arrays.stream(cookies)
                         .filter(cookie -> "refreshToken".equals(cookie.getName()))
                         .map(Cookie::getValue)
                         .findFirst();
 
-                if(refreshToken.isEmpty()) {
-                  jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
-                          ErrorMessage.NO_REFRESH_TOKEN_IN_COOKIE.getMessage());
-                  return;
-                } else {
-                  if (jwtTokenProvider.validateToken(refreshToken.get()) == JwtExceptionType.EMPTY_JWT
-                          || jwtTokenProvider.validateToken(accessToken) == JwtExceptionType.EMPTY_JWT) {
-                    jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.BAD_REQUEST, ErrorMessage.NO_TOKEN.getMessage());
+                if (refreshToken.isEmpty()) {
+                    jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.BAD_REQUEST,
+                            ERR_NO_REFRESH_TOKEN_IN_COOKIE.toString());
                     return;
-                  } else if (jwtTokenProvider.validateToken(accessToken) == JwtExceptionType.EXPIRED_JWT_TOKEN) {
-                    if (jwtTokenProvider.validateToken(refreshToken.get()) == JwtExceptionType.EXPIRED_JWT_TOKEN) {
-                      // access, refresh 둘 다 만료
-                      jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
-                              ErrorMessage.SIGNIN_REQUIRED.getMessage());
-                      return;
-                    } else if (jwtTokenProvider.validateToken(refreshToken.get()) == JwtExceptionType.VALID_JWT_TOKEN) {
-                      // 토큰 재발급
-                      Long memberId = jwtTokenProvider.validateMemberRefreshToken(refreshToken.get());
-
-                      String newAccessToken = jwtTokenProvider.generateAccessToken(memberId);
-
-                      setAuthentication(newAccessToken);
-                      request.setAttribute("newAccessToken", newAccessToken);
-                    }
-                  } else if (jwtTokenProvider.validateToken(accessToken) == JwtExceptionType.VALID_JWT_TOKEN) {
-                    jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
-                            ErrorMessage.VALID_ACCESS_TOKEN.getMessage());
-                    return;
-                  } else {
-                    throw new UnAuthorizedException(ErrorMessage.UNAUTHORIZED_TOKEN.getMessage());
-                  }
                 }
-            } else {
-                JwtExceptionType jwtException = jwtTokenProvider.validateToken(accessToken);
 
+                // 토큰이 없을 때
+                if (jwtTokenProvider.validateToken(refreshToken.get()) == JwtExceptionType.EMPTY_JWT) {
+                    jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
+                            ERR_UNAUTORIZED.toString()
+                    );
+                    return;
+                }
+
+                // access, refresh 둘 다 만료
+                if (jwtTokenProvider.validateToken(refreshToken.get()) == JwtExceptionType.EXPIRED_JWT_TOKEN) {
+                    jwtAuthenticationEntryPoint.setResponse(response, HttpStatus.UNAUTHORIZED,
+                            ErrorMessage.ERR_REFRESH_TOKEN_EXPIRED.toString());
+                    return;
+                }
+
+                // 토큰 재발급
+                Long memberId = jwtTokenProvider.validateMemberRefreshToken(refreshToken.get());
+
+                String newAccessToken = jwtTokenProvider.generateAccessToken(memberId);
+
+                setAuthentication(newAccessToken);
+                request.setAttribute("newAccessToken", newAccessToken);
+            }
+
+            /**
+             * 토큰 검증 로직
+             */
+            else {
+                JwtExceptionType jwtException = jwtTokenProvider.validateToken(accessToken);
                 if (accessToken != null) {
                     // 토큰 검증
                     if (jwtException == JwtExceptionType.VALID_JWT_TOKEN) {
@@ -87,7 +94,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-          throw new UnAuthorizedException(ErrorMessage.UNAUTHORIZED.getMessage());
+            throw new UnAuthorizedException(ERR_UNAUTORIZED);
         }
 
         chain.doFilter(request, response);

@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class BadRequestException extends SkillTestingCustomException {
 
-    public BadRequestException(String error) {
-        super(HttpStatus.BAD_REQUEST, error);
+    public BadRequestException(ErrorMessage code) {
+        super(HttpStatus.BAD_REQUEST, code);
     }
 }

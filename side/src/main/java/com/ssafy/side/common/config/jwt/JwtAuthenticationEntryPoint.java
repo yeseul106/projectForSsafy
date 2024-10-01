@@ -1,6 +1,7 @@
 package com.ssafy.side.common.config.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.side.common.exception.ErrorMessage;
 import com.ssafy.side.common.exception.FailResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,12 +22,11 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     setResponse(response, HttpStatus.UNAUTHORIZED, authException.getMessage());
   }
 
-
-  public void setResponse(HttpServletResponse response, HttpStatus statusCode, String error) throws IOException {
+  public void setResponse(HttpServletResponse response, HttpStatus status, String code) throws IOException {
     response.setContentType("application/json;charset=UTF-8");
-    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setStatus(status.value());
 
-    FailResponse apiResponse = FailResponse.fail(statusCode.value(), error);
+    FailResponse apiResponse = FailResponse.fail(status.value(), code);
     response.getWriter().println(mapper.writeValueAsString(apiResponse));
   }
 

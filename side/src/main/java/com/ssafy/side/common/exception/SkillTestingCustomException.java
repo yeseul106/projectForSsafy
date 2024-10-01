@@ -9,21 +9,12 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SkillTestingCustomException extends RuntimeException {
 
-    HttpStatus code;
-    String error;
+    HttpStatus status;
+    ErrorMessage code;
 
-    public SkillTestingCustomException(HttpStatus statusCode) {
+    public SkillTestingCustomException(HttpStatus status, ErrorMessage code) {
         super();
-        this.code = statusCode;
-    }
-
-    public SkillTestingCustomException(HttpStatus statusCode, String responseMessage) {
-        super(responseMessage);
-        this.code = statusCode;
-        this.error = responseMessage;
-    }
-
-    public int getStatusCode() {
-        return this.code.value();
+        this.status = status;
+        this.code = code;
     }
 }

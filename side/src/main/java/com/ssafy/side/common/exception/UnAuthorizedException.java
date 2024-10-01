@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public class UnAuthorizedException extends SkillTestingCustomException {
 
-    public UnAuthorizedException(String responseMessage) {
-        super(HttpStatus.UNAUTHORIZED, responseMessage);
+    public UnAuthorizedException(ErrorMessage code) {
+        super(HttpStatus.UNAUTHORIZED, code);
     }
 }

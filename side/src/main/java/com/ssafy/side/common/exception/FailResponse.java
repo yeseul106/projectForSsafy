@@ -9,12 +9,12 @@ import lombok.Getter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FailResponse {
     private final int status;
-    private final String message;
+    private final String code;
 
-    public static FailResponse fail(int status, String message) {
+    public static FailResponse fail(int status, String code) {
         return FailResponse.builder()
                 .status(status)
-                .message(message)
+                .code(code)
                 .build();
     }
 }
