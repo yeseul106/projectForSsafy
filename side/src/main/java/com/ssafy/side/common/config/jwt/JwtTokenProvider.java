@@ -82,16 +82,6 @@ public class JwtTokenProvider {
     }
   }
 
-  public String resolveRefreshToken(HttpServletRequest request) {
-    String header = request.getHeader(REFRESH_AUTHORIZATION_HEADER);
-
-    if (header == null || !header.startsWith("Bearer ")) {
-      return null;
-    } else {
-      return header.split(" ")[1];
-    }
-  }
-
   public JwtExceptionType validateToken(String token) {
     try {
       Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token)

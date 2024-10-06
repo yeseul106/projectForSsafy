@@ -13,7 +13,7 @@ public class SkillTestingCustomException extends RuntimeException {
     ErrorMessage code;
 
     public SkillTestingCustomException(HttpStatus status, ErrorMessage code) {
-        super();
+        super(code.toString());
         this.status = status;
         this.code = code;
     }
