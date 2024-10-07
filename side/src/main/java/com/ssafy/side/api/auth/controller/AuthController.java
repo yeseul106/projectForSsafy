@@ -35,7 +35,8 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", responseDto.refreshToken())
                 .maxAge(7*24*60*60)
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("None")
+                .secure(false)
                 .httpOnly(true)
                 .build();
         HttpHeaders headers = new HttpHeaders();
