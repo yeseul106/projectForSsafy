@@ -18,12 +18,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -43,7 +45,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
              */
             if (ISSUE_TOKEN_API_URL.equals(request.getRequestURI())) {
                 Cookie[] cookies = request.getCookies();
-                System.out.println(cookies.length);
                 if (cookies == null) {
                     throw new UnAuthorizedException(ERR_NO_COOKIE);
                 }
