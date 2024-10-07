@@ -43,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
              */
             if (ISSUE_TOKEN_API_URL.equals(request.getRequestURI())) {
                 Cookie[] cookies = request.getCookies();
+                System.out.println(cookies.length);
                 if (cookies == null) {
                     throw new UnAuthorizedException(ERR_NO_COOKIE);
                 }
